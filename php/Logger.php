@@ -19,14 +19,18 @@ class Logger
         return json_encode($this->tracedData, JSON_INVALID_UTF8_IGNORE);
     }
 
+    protected function getDescriptionText()
+    {
+        return "$this->message in";
+    }
+
     public function getMessageText()
     {
         $botUsername = static::$botUsername;
         $title = "*$this->name* from [@$botUsername](https://t.me/$botUsername)";
-        $description = "$this->message in";
+        $description = $this->getDescriptionText();
 
         $tracedText = $this->getTracedText();
-        $tracedContent = "";
 
         $datetime = new \DateTime();
         $datetimeStr = $datetime->format('Y-m-d H:i:s');
@@ -51,6 +55,8 @@ class Logger
         if(isset(static::$hooks['after']) && is_callable(static::$hooks['after'])) {
             static::$hooks['after']($response, $url);
         }
+
+        return $response;
     }
 
     public static function addHook(string $key, callable $fn)

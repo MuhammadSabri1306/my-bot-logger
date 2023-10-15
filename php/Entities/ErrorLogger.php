@@ -39,6 +39,6 @@ class ErrorLogger extends Logger
             ]
         );
         
-        $logData->log();
+        return $logData->log();
     }
 }
