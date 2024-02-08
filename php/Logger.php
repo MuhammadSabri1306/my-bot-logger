@@ -23,6 +23,9 @@ class Logger
     {
         $err = $this->err;
         $errMessage = $err->getMessage();
+        $errTrace = array_filter($err->getTrace(), function($trace) {
+            return isset($trace['file'], $trace['line']);
+        });
 
         $errTraceData = [
             [ 'file' => $err->getFile(), 'line' => $err->getLine() ],
@@ -31,7 +34,7 @@ class Logger
                     'file' => $errTrace['file'],
                     'line' => $errTrace['line']
                 ];
-            }, $err->getTrace())
+            }, $errTrace)
         ];
 
         return [
