@@ -11,32 +11,63 @@ class Logger
     
     protected $key = 'phperror';
     protected $name = 'PHP Server Error';
-    protected $message;
-    protected $tracedData;
+    protected $err;
 
-    protected function getTracedText()
+    protected function getHeaderText()
     {
-        return json_encode($this->tracedData, JSON_INVALID_UTF8_IGNORE);
+        $botUsername = static::$botUsername;
+        return "*$this->name* from [@$botUsername](https://t.me/$botUsername)".PHP_EOL.PHP_EOL;
     }
 
-    protected function getDescriptionText()
+    protected function getErrorTrace()
     {
-        return "$this->message in";
+        $err = $this->err;
+        $errMessage = $err->getMessage();
+
+        $errTraceData = [
+            [ 'file' => $err->getFile(), 'line' => $err->getLine() ],
+            ... array_map(function($errTrace) {
+                return [
+                    'file' => $errTrace['file'],
+                    'line' => $errTrace['line']
+                ];
+            }, $err->getTrace())
+        ];
+
+        return [
+            'message' => $errMessage,
+            'trace' => $errTraceData
+        ];
+    }
+
+    protected function getErrorText()
+    {
+        $errData = $this->getErrorTrace();
+        $text = $errData['message'];
+
+        foreach($errData['trace'] as $errTrace) {
+            $errFile = $errTrace['file'];
+            $errLine = $errTrace['line'];
+            $text .= "\n  at $errFile:$errLine";
+        }
+
+        return '```' . PHP_EOL . "$text```";
+    }
+    
+    public function getFooterText()
+    {
+        $datetime = new \DateTime();
+        $datetimeStr = $datetime->format('Y-m-d H:i:s');
+        return PHP_EOL.PHP_EOL."#mybotlogger #$this->key $datetimeStr";
     }
 
     public function getMessageText()
     {
-        $botUsername = static::$botUsername;
-        $title = "*$this->name* from [@$botUsername](https://t.me/$botUsername)";
-        $description = $this->getDescriptionText();
+        $headerText = $this->getHeaderText();
+        $errorText = $this->getErrorText();
+        $footerText = $this->getFooterText();
 
-        $tracedText = $this->getTracedText();
-
-        $datetime = new \DateTime();
-        $datetimeStr = $datetime->format('Y-m-d H:i:s');
-        $footer = "#mybotlogger #$this->key $datetimeStr";
-
-        return $title.PHP_EOL.PHP_EOL."$description```".PHP_EOL."$tracedText```".PHP_EOL.PHP_EOL.$footer;
+        return $headerText.$errorText.$footerText;
     }
     
     protected function log()
