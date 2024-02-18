@@ -13,6 +13,13 @@ class Logger
     protected $name = 'PHP Server Error';
     protected $err;
 
+    public function __construct($err = null)
+    {
+        if($err && $err instanceof \Throwable) {
+            $this->err = $err;
+        }
+    }
+
     protected function getHeaderText()
     {
         $botUsername = static::$botUsername;
@@ -73,7 +80,7 @@ class Logger
         return $headerText.$errorText.$footerText;
     }
     
-    protected function log()
+    public function log()
     {
         $botToken = static::$botToken;
         $chatId = static::$chatId;
