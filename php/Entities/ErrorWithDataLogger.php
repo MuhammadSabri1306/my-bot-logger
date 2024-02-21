@@ -27,9 +27,10 @@ class ErrorWithDataLogger extends Logger
         return $dataText.$errorText;
     }
 
-    public static function catch($err)
+    public static function catch(\Throwable $err, array $data = [])
     {
-        $logData = new ErrorLogger($err);
-        return $logData->log();
+        $logger = new ErrorLogger($err);
+        $logger->data = $data;
+        return $logger->log();
     }
 }
