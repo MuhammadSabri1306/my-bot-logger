@@ -7,17 +7,13 @@ class WarningLogger extends Logger
 {
     protected function getErrorTrace()
     {
-        $errData = parent::getErrorTrace();
-        return [
-            'message' => $errData['message'],
-            'trace' => array_slice($errData['trace'], 1)
-        ];
+        $errTraceData = parent::getErrorTrace();
+        return array_slice($errTraceData, 1);
     }
 
     public static function catch($err)
     {
-        $logData = new WarningLogger();
-        $logData->err = $err;
+        $logData = new WarningLogger($err);
         return $logData->log();
     }
 }

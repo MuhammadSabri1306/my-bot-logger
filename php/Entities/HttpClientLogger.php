@@ -8,6 +8,29 @@ class HttpClientLogger extends Logger
     protected $key = 'httpclient';
     protected $name = 'HTTP Client';
 
+    protected function getDescriptionText()
+    {
+        try {
+
+            $errMessage = $this->err->getMessage();
+            if(!$errMessage) {
+                $response = $this->err->getResponse();
+                if(isset($response->message)) {
+                    $errMessage = $response->message;
+                } elseif(isset($response['message'])) {
+                    $errMessage = $response['message'];
+                }
+            }
+
+            $escapedChars = [ '_', '*', '`', '[', ']' ];
+            $text = str_replace($escapedChars, '', $errMessage);
+            return $text . PHP_EOL;
+
+        } catch(\Throwable $err) {
+            return '';
+        }
+    }
+
     protected function getRequestText()
     {
         try {
@@ -34,11 +57,14 @@ class HttpClientLogger extends Logger
         }
     }
 
-    public function getErrorText()
+    public function getMessageText()
     {
-        $requestText = $this->getRequestText();
-        $responseText = $this->getResponseText();
-        return $requestText.$responseText;
+        return $this->getHeaderText() .
+            $this->getParamsText() .
+            $this->getErrorText() .
+            $this->getRequestText().
+            $this->getResponseText().
+            $this->getFooterText();
     }
 
     public static function catch($err)

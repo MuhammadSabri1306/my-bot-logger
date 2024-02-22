@@ -13,10 +13,19 @@ class Logger
     protected $name = 'PHP Server Error';
     protected $err;
 
+    protected $params = [];
+
     public function __construct($err = null)
     {
         if($err && $err instanceof \Throwable) {
             $this->err = $err;
+        }
+    }
+
+    public function setParams(array $params)
+    {
+        foreach($params as $key => $val) {
+            $this->params[$key] = $val;
         }
     }
 
@@ -26,10 +35,36 @@ class Logger
         return "*$this->name* from [@$botUsername](https://t.me/$botUsername)".PHP_EOL.PHP_EOL;
     }
 
+    protected function getDescriptionText()
+    {
+        try {
+
+            $errMessage = $this->err->getMessage();
+            $escapedChars = [ '_', '*', '`', '[', ']' ];
+            $text = str_replace($escapedChars, '', $errMessage);
+            return $text . PHP_EOL;
+
+        } catch(\Throwable $err) {
+            return '';
+        }
+    }
+
+    protected function getParamsText()
+    {
+        if(!isset($this->params)) return '';
+        try {
+
+            $json = json_encode($this->params, JSON_PRETTY_PRINT);
+            return "Parameter:```" . PHP_EOL . "$json```" . PHP_EOL . PHP_EOL;
+
+        } catch(\Throwable $err) {
+            return '';
+        }
+    }
+
     protected function getErrorTrace()
     {
         $err = $this->err;
-        $errMessage = $err->getMessage();
         $errTrace = array_filter($err->getTrace(), function($trace) {
             return isset($trace['file'], $trace['line']);
         });
@@ -44,21 +79,21 @@ class Logger
             }, $errTrace)
         ];
 
-        return [
-            'message' => $errMessage,
-            'trace' => $errTraceData
-        ];
+        return $errTraceData;
     }
 
     protected function getErrorText()
     {
-        $errData = $this->getErrorTrace();
-        $text = $errData['message'];
+        $errTraceData = $this->getErrorTrace();
+        $text = '';
 
-        foreach($errData['trace'] as $errTrace) {
+        $useNewLine = false;
+        foreach($errTraceData as $errTrace) {
             $errFile = $errTrace['file'];
             $errLine = $errTrace['line'];
-            $text .= "\n  at $errFile:$errLine";
+            if($useNewLine) $text .= PHP_EOL;
+            $text .= "  at $errFile:$errLine";
+            if(!$useNewLine) $useNewLine = true;
         }
 
         return '```' . PHP_EOL . "$text```";
@@ -73,11 +108,11 @@ class Logger
 
     public function getMessageText()
     {
-        $headerText = $this->getHeaderText();
-        $errorText = $this->getErrorText();
-        $footerText = $this->getFooterText();
-
-        return $headerText.$errorText.$footerText;
+        return $this->getHeaderText() .
+            $this->getDescriptionText() .
+            $this->getParamsText() .
+            $this->getErrorText() .
+            $this->getFooterText();
     }
     
     public function log()

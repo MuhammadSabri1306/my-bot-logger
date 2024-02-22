@@ -7,8 +7,7 @@ class ErrorLogger extends Logger
 {
     public static function catch($err)
     {
-        $logData = new ErrorLogger();
-        $logData->err = $err;
+        $logData = new ErrorLogger($err);
         return $logData->log();
     }
 }

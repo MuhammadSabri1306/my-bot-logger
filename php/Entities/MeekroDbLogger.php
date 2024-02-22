@@ -8,27 +8,22 @@ class MeekroDbLogger extends Logger
     protected $key = 'meekrodberror';
     protected $name = 'MeekroDB Error';
 
-    protected function getQueryText()
-    {
-        $query = $this->err->getQuery();
-        if(empty($query)) return '';
-        return PHP_EOL.PHP_EOL."MySQL Query:```".PHP_EOL."$query```";
-    }
-
     public function getMessageText()
     {
-        $headerText = $this->getHeaderText();
-        $errorText = $this->getErrorText();
-        $queryText = $this->getQueryText();
-        $footerText = $this->getFooterText();
+        $this->setParams([
+            'mysql_query' => $this->err->getQuery()
+        ]);
 
-        return $headerText.$errorText.$queryText.$footerText;
+        return $this->getHeaderText() .
+            $this->getDescriptionText() .
+            $this->getParamsText() .
+            $this->getErrorText() .
+            $this->getFooterText();
     }
 
     public static function catch($err)
     {
-        $logData = new MeekroDbLogger();
-        $logData->err = $err;
+        $logData = new MeekroDbLogger($err);
         return $logData->log();
     }
 }
