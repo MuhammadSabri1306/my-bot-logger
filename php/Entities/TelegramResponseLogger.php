@@ -10,24 +10,32 @@ class TelegramResponseLogger extends Logger
 
     protected function getResponseText()
     {
-        $text = json_encode($this->err->getResponseData(), JSON_PRETTY_PRINT);
-        return PHP_EOL.PHP_EOL."Response:```".PHP_EOL."$text```";
+        try {
+
+            $response = $this->err->getResponseData();
+            if(empty($response)) return '';
+
+            $json = json_encode($response, JSON_PRETTY_PRINT);
+            return PHP_EOL . "Response:```" . PHP_EOL . "$json```" . PHP_EOL;
+
+        } catch(\Throwable $err) {
+            return '';
+        }
     }
 
     public function getMessageText()
     {
-        $headerText = $this->getHeaderText();
-        $errorText = $this->getErrorText();
-        $responseText = $this->getResponseText();
-        $footerText = $this->getFooterText();
-
-        return $headerText.$errorText.$responseText.$footerText;
+        return $this->getHeaderText() .
+            $this->getDescriptionText() .
+            $this->getErrorText() .
+            $this->getParamsText() .
+            $this->getResponseText().
+            $this->getFooterText();
     }
 
     public static function catch($err)
     {
-        $logData = new TelegramResponseLogger();
-        $logData->err = $err;
-        return $logData->log();
+        $logger = new TelegramResponseLogger($err);
+        return $logger->log();
     }
 }

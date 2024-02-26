@@ -22,9 +22,26 @@ class HttpClientLogger extends Logger
                 }
             }
 
-            $escapedChars = [ '_', '*', '`', '[', ']' ];
-            $text = str_replace($escapedChars, '', $errMessage);
-            return $text . PHP_EOL;
+            $text = null;
+            if(is_string($errMessage) && !empty($errMessage)) {
+
+                // remove response from error message
+                $responseStrIndex = strpos($errMessage, ' response:');
+                $text = $responseStrIndex === false ? $errMessage : substr($errMessage, 0, $responseStrIndex);
+
+                // escape telegram markdown
+                $escapedChars = [ '_', '*', '`', '[', ']' ];
+                foreach($escapedChars as $char) {
+                    $text = str_replace($char, "\\$char", $text);
+                }
+
+            }
+
+            if(!is_string($text) || empty($text)) {
+                $text = 'error uncaught';
+            }
+
+            return  PHP_EOL . $text . PHP_EOL;
 
         } catch(\Throwable $err) {
             return '';
@@ -36,8 +53,10 @@ class HttpClientLogger extends Logger
         try {
 
             $request = $this->err->getRequest();
+            if(empty($request)) return '';
+
             $json = json_encode($request, JSON_PRETTY_PRINT);
-            return PHP_EOL.PHP_EOL."Request:```".PHP_EOL."$json```";
+            return PHP_EOL . "Request:```" . PHP_EOL . "$json```" . PHP_EOL;
 
         } catch(\Throwable $err) {
             return '';
@@ -49,8 +68,10 @@ class HttpClientLogger extends Logger
         try {
 
             $response = $this->err->getResponse();
+            if(empty($response)) return '';
+
             $json = json_encode($response, JSON_PRETTY_PRINT);
-            return PHP_EOL.PHP_EOL."Response:```".PHP_EOL."$json```";
+            return PHP_EOL . "Response:```" . PHP_EOL . "$json```" . PHP_EOL;
 
         } catch(\Throwable $err) {
             return '';
@@ -60,8 +81,9 @@ class HttpClientLogger extends Logger
     public function getMessageText()
     {
         return $this->getHeaderText() .
-            $this->getParamsText() .
+            $this->getDescriptionText() .
             $this->getErrorText() .
+            $this->getParamsText() .
             $this->getRequestText().
             $this->getResponseText().
             $this->getFooterText();
@@ -69,7 +91,7 @@ class HttpClientLogger extends Logger
 
     public static function catch($err)
     {
-        $logData = new HttpClientLogger($err);
-        return $logData->log();
+        $logger = new HttpClientLogger($err);
+        return $logger->log();
     }
 }

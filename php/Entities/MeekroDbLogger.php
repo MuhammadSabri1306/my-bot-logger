@@ -23,7 +23,7 @@ class MeekroDbLogger extends Logger
 
     public static function catch($err)
     {
-        $logData = new MeekroDbLogger($err);
-        return $logData->log();
+        $logger = new MeekroDbLogger($err);
+        return $logger->log();
     }
 }

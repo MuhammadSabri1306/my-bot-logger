@@ -32,7 +32,7 @@ class Logger
     protected function getHeaderText()
     {
         $botUsername = static::$botUsername;
-        return "*$this->name* from [@$botUsername](https://t.me/$botUsername)".PHP_EOL.PHP_EOL;
+        return "*$this->name* from [@$botUsername](https://t.me/$botUsername)" . PHP_EOL;
     }
 
     protected function getDescriptionText()
@@ -42,7 +42,7 @@ class Logger
             $errMessage = $this->err->getMessage();
             $escapedChars = [ '_', '*', '`', '[', ']' ];
             $text = str_replace($escapedChars, '', $errMessage);
-            return $text . PHP_EOL;
+            return PHP_EOL . $text . PHP_EOL;
 
         } catch(\Throwable $err) {
             return '';
@@ -51,11 +51,11 @@ class Logger
 
     protected function getParamsText()
     {
-        if(!isset($this->params)) return '';
+        if(!isset($this->params) || empty($this->params)) return '';
         try {
 
             $json = json_encode($this->params, JSON_PRETTY_PRINT);
-            return "Parameter:```" . PHP_EOL . "$json```" . PHP_EOL . PHP_EOL;
+            return PHP_EOL . "Parameter:```" . PHP_EOL . "$json```" . PHP_EOL;
 
         } catch(\Throwable $err) {
             return '';
@@ -87,6 +87,8 @@ class Logger
         $errTraceData = $this->getErrorTrace();
         $text = '';
 
+        if(empty($errTraceData)) return $text;
+
         $useNewLine = false;
         foreach($errTraceData as $errTrace) {
             $errFile = $errTrace['file'];
@@ -96,22 +98,22 @@ class Logger
             if(!$useNewLine) $useNewLine = true;
         }
 
-        return '```' . PHP_EOL . "$text```";
+        return PHP_EOL . '```' . PHP_EOL . "$text```" . PHP_EOL;
     }
     
     public function getFooterText()
     {
         $datetime = new \DateTime();
         $datetimeStr = $datetime->format('Y-m-d H:i:s');
-        return PHP_EOL.PHP_EOL."#mybotlogger #$this->key $datetimeStr";
+        return PHP_EOL . "#mybotlogger #$this->key $datetimeStr";
     }
 
     public function getMessageText()
     {
         return $this->getHeaderText() .
             $this->getDescriptionText() .
-            $this->getParamsText() .
             $this->getErrorText() .
+            $this->getParamsText() .
             $this->getFooterText();
     }
     

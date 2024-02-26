@@ -13,7 +13,7 @@ class WarningLogger extends Logger
 
     public static function catch($err)
     {
-        $logData = new WarningLogger($err);
-        return $logData->log();
+        $logger = new WarningLogger($err);
+        return $logger->log();
     }
 }
