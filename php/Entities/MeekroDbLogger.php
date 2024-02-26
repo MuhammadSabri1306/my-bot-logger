@@ -16,8 +16,8 @@ class MeekroDbLogger extends Logger
 
         return $this->getHeaderText() .
             $this->getDescriptionText() .
-            $this->getParamsText() .
             $this->getErrorText() .
+            $this->getParamsText() .
             $this->getFooterText();
     }
 
