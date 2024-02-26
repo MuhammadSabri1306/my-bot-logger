@@ -39,9 +39,19 @@ class Logger
     {
         try {
 
-            $errMessage = $this->err->getMessage();
-            $escapedChars = [ '_', '*', '`', '[', ']' ];
-            $text = str_replace($escapedChars, '', $errMessage);
+            $text = $this->err->getMessage();
+            if(!is_string($text) || empty($text)) {
+
+                $text = 'error uncaught';
+
+            } else {
+
+                $escapedChars = [ '_', '*', '`', '[', ']' ];
+                foreach($escapedChars as $char) {
+                    $text = str_replace($char, "\\$char", $text);
+                }
+
+            }
             return PHP_EOL . $text . PHP_EOL;
 
         } catch(\Throwable $err) {
